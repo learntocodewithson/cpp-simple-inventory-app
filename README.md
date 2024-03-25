@@ -3,11 +3,11 @@
 # The Program Flow
  - Display Title
  - Menu
-  - 1. Log Daily Inventory
+  - 1. Daily Log Inventory
   - 2. Products
   - 3. Exit
 
-# 1. Log Daily Inventory
+# 1. Daily Log Inventory
  - Display Last Inventory
  - Menu
   - 1. Log New Inventory
@@ -25,7 +25,7 @@
   - 5. Back To Main Menu
 
 # Technical/Specs
- - Database: csv or sqlite
+ - Database: csv
  - Code Pattern: OOP
  - Objects
   - Product
@@ -36,4 +36,3 @@
 # App Commands
  - Compiling and Creating an Executable file: g++ simple-inventory-app.cpp -o simple-inventory-app
  - Run the executable file: ./simple-inventory-app
- 
