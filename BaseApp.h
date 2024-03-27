@@ -118,6 +118,12 @@ class BaseApp: public Base {
    case 2:
     //
     break;
+   case 3:
+    //
+    break;
+   case 4:
+    base_product.searchProduct();
+    break;
    default:
     back_to_main_menu = 1;
     break;
