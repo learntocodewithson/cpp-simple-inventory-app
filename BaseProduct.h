@@ -32,8 +32,12 @@ class BaseProduct: public Base, public Crud {
   void deleteRecord() {}
 
   void saveRecord(){
-   std::cout << "Product Id: " << product_id << "\nProduct Name: " << product_name;
-   std::getchar();
+   std::ofstream Products("products.csv", std::ios::app);
+   if(Products.is_open()){
+    Products << product_id << "," << product_name << std::endl;
+    Products.close();
+   }
+   setNotice(ANSI_COLOR_GREEN + product_name + " has been successfully added." + ANSI_COLOR_RESET);
   }
 
   void updateRecord() {}

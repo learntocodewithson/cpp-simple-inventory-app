@@ -64,7 +64,7 @@ class BaseApp: public Base {
  }
 
  void getChoiceInput(){
-  std::cout << "Enter your choice: ";
+  std::cout << "\tEnter your choice: ";
   std::cin >> choice;
  }
 
@@ -106,7 +106,9 @@ class BaseApp: public Base {
 
    std::cout << displayTitle();
    std::cout << base_product.displayMenu();
-
+   if(base_product.hasNotice()){
+    std::cout << "\t" << base_product.displayNotice() << "\n\n";
+   }
    getChoiceInput();
    
    switch (choice){
