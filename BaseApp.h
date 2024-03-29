@@ -116,7 +116,7 @@ class BaseApp: public Base {
     base_product.addRecord();
     break;
    case 2:
-    //
+    base_product.editRecord();
     break;
    case 3:
     //

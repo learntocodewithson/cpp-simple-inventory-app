@@ -19,9 +19,18 @@
  - Display List of Products
  - Menu
   - 1. Add New Product
+   - Enter Product Id
+   - Enter Product Name
   - 2. Edit Product
+   - call search product
+   - Edit Product Id
+   - Edit Product Name
+   - Edit Product Category
   - 3. Delete Product
   - 4. Search Product
+    - Display Products
+    - Enter Product ID
+    - Display Result
   - 5. Back To Main Menu
 
 # Technical/Specs

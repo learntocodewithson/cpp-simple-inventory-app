@@ -16,6 +16,8 @@ class BaseDailyLogInventory: public Base, public Crud {
  void editRecord() {}
  void deleteRecord() {}
  void saveRecord() {}
- void updateRecord() {}
+ int countRecord() {
+  return 0;
+ }
 };
 #endif

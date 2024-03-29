@@ -50,6 +50,20 @@ class BaseProduct: public Base, public Crud {
       "\n\tProduct Category: " + product_category;
   }
 
+  int countRecord(){
+    int products_count = 0;
+
+    std::string row_data;
+
+    std::ifstream ReadProducts("products.csv");
+
+    while(getline(ReadProducts, row_data)) { products_count++; }
+
+    ReadProducts.close();
+
+    return products_count;
+  }
+
   void addRecord() {
    std::cout << "Adding New Record";
    
@@ -65,7 +79,32 @@ class BaseProduct: public Base, public Crud {
 
    saveRecord();
   }
-  void editRecord() {}
+
+  void editRecord() {
+    // productid: temporary variable to avoid overriding current searched product id
+    std::string productId, productName, productCategory;
+
+    searchProduct();
+    
+   if(hasNotice()){
+    std::cout << "\t" << displayNotice() << "\n\n";
+
+    std::cout << "\tEditing " << product_id;
+    
+    std::cout << "\n\tUpdate Product ID(" << product_id <<"): ";
+    std::cin >> productId;
+
+    std::cout << "\tUpdate Product Name(" << product_name <<"): ";
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    getline(std::cin, productName);
+
+    std::cout << "\tUpdate Product Category(" << product_category <<"): ";
+    getline(std::cin, productCategory);
+
+    updateRecord(productId, productName, productCategory);
+   }
+
+  }
   void deleteRecord() {}
 
   void saveRecord(){
@@ -77,7 +116,72 @@ class BaseProduct: public Base, public Crud {
    setSuccessNotice(product_name + " has been successfully added.");
   }
 
-  void updateRecord() {}
+  void updateRecord(std::string productId, std::string productName, std::string productCategory) {
+    int products_count, counter;
+    products_count = countRecord();
+    counter = 0;
+
+    std::string row_data, products[products_count], tempProductId, tempProductName, tempProductCategory, formattedProductData;
+    
+  
+    // Reading all records and store to string array
+
+    std::ifstream ReadProducts("products.csv");
+
+    while(getline(ReadProducts, row_data)){
+
+      std::istringstream scanner(row_data);
+
+      getline(scanner, tempProductId, ',');
+      getline(scanner, tempProductName, ',');
+      getline(scanner, tempProductCategory);
+
+     if(tempProductId == product_id){
+      formattedProductData = "";
+
+      if(productId != ""){
+        formattedProductData += productId + ',';
+      }else{
+        formattedProductData += product_id + ',';
+      }
+
+      if(productName != ""){
+        formattedProductData += productName;
+      }else{
+        formattedProductData += tempProductName;
+      }
+
+      if(productCategory != ""){
+        formattedProductData += ',' + productCategory;
+      }else if(tempProductCategory != ""){
+        formattedProductData += ',' + tempProductCategory;
+      }
+
+      products[counter] = formattedProductData;
+     }else {
+      products[counter] = row_data;
+     }
+
+     counter++;
+    }
+
+    ReadProducts.close();
+
+    // create a new csv file and store new list of products
+
+    std::ofstream WriteProducts("products.csv");
+
+    if(WriteProducts.is_open()){
+      for(int i = 0; i < products_count; i++){
+        WriteProducts << products[i] << "\n";
+      }
+
+      WriteProducts.close();
+    }else{
+       setErrorNotice("\nUnable to create and open a file");
+    }
+
+  }
 
   void searchProduct(){
     std::cout << displayProducts();
