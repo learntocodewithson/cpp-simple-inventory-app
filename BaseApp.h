@@ -119,7 +119,7 @@ class BaseApp: public Base {
     base_product.editRecord();
     break;
    case 3:
-    //
+    base_product.deleteRecord();
     break;
    case 4:
     base_product.searchProduct();

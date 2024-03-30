@@ -80,6 +80,29 @@ class BaseProduct: public Base, public Crud {
    saveRecord();
   }
 
+  void deleteRecord() {
+    std::string deleteAnswer;
+    
+    searchProduct();
+
+    if(hasNotice()){
+      std::cout << "\t" << displayNotice() << "\n\n";
+
+      std::cout << "Are you sure you want to delete[yes or no]? ";
+      std::cin >> deleteAnswer;
+
+      if(deleteAnswer == "Yes" || deleteAnswer == "yes"){
+        // perform delete
+        deleteProduct();
+
+        setSuccessNotice("\n\tProduct has been successfull deleted.");
+      }else{
+         setErrorNotice("\n\tProduct deletion has been cancelled.");
+      }
+
+    }
+  }
+
   void editRecord() {
     // productid: temporary variable to avoid overriding current searched product id
     std::string productId, productName, productCategory;
@@ -105,8 +128,7 @@ class BaseProduct: public Base, public Crud {
    }
 
   }
-  void deleteRecord() {}
-
+  
   void saveRecord(){
    std::ofstream Products("products.csv", std::ios::app);
    if(Products.is_open()){
@@ -114,6 +136,41 @@ class BaseProduct: public Base, public Crud {
     Products.close();
    }
    setSuccessNotice(product_name + " has been successfully added.");
+  }
+
+  void deleteProduct(){
+    int products_count, counter;
+    products_count = countRecord();
+    counter = 0;
+
+    std::string row_data, products[products_count], tempProductId;
+    
+    // read the file
+    std::ifstream ReadProducts("products.csv");
+    while(getline(ReadProducts, row_data)){
+      std::istringstream scanner(row_data);
+      getline(scanner, tempProductId, ',');
+      if(tempProductId != product_id){
+         products[counter] = row_data;
+
+         counter++;
+      }
+    }
+    ReadProducts.close();
+
+    // create new file and load the new list
+    std::ofstream WriteProducts("products.csv");
+
+    if(WriteProducts.is_open()){
+      for(int i = 0; i < products_count; i++){
+        if(products[i] != "")
+          WriteProducts << products[i] << "\n";
+      }
+
+      WriteProducts.close();
+    }else{
+       setErrorNotice("\nUnable to create and open a file");
+    }
   }
 
   void updateRecord(std::string productId, std::string productName, std::string productCategory) {
