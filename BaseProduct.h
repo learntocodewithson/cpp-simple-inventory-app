@@ -50,6 +50,34 @@ class BaseProduct: public Base, public Crud {
       "\n\tProduct Category: " + product_category;
   }
 
+  std::string generateProductId(){
+    std::string prefix = "KP";
+    std::string productId = prefix;
+
+    const char alphanum[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    // Seed the random number generator
+    srand(time(0));
+
+    for (int i = 0; i < 5; ++i) {
+        productId += alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+
+    return productId;
+  }
+
+  std::string uniqueProductId(){
+    std::string productid;
+    
+    do {
+      productid = generateProductId();
+    } while(productIdExists(productid));
+    
+    return productid;
+  }
+
   int countRecord(){
     int products_count = 0;
 
@@ -65,16 +93,14 @@ class BaseProduct: public Base, public Crud {
   }
 
   void addRecord() {
-   std::cout << "Adding New Record";
-   
-   std::cout << "\nEnter Product ID: ";
-   std::cin >> product_id;
-   
-   std::cout << "Enter Product Name: ";
+   product_id = uniqueProductId();
+
+   std::cout << "\n\tAdding New Record\n\n\tPRODUCT ID: " << product_id;
+   std::cout << "\n\tEnter Product Name: ";
    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
    getline(std::cin, product_name);
 
-   std::cout << "Enter Product Category: ";
+   std::cout << "\tEnter Product Category: ";
    getline(std::cin, product_category);
 
    saveRecord();
@@ -82,24 +108,23 @@ class BaseProduct: public Base, public Crud {
 
   void deleteRecord() {
     std::string deleteAnswer;
-    
-    searchProduct();
 
-    if(hasNotice()){
+    searchProduct();
+  
+    if(searchFound && hasNotice()){
       std::cout << "\t" << displayNotice() << "\n\n";
 
-      std::cout << "Are you sure you want to delete[yes or no]? ";
+      std::cout << "\tAre you sure you want to delete[yes or no]? ";
       std::cin >> deleteAnswer;
 
+      
       if(deleteAnswer == "Yes" || deleteAnswer == "yes"){
-        // perform delete
         deleteProduct();
 
         setSuccessNotice("\n\tProduct has been successfull deleted.");
       }else{
-         setErrorNotice("\n\tProduct deletion has been cancelled.");
+        setErrorNotice("\n\tProduct deletion has been cancelled.");
       }
-
     }
   }
 
@@ -109,13 +134,11 @@ class BaseProduct: public Base, public Crud {
 
     searchProduct();
     
-   if(hasNotice()){
+   if(searchFound && hasNotice()){
     std::cout << "\t" << displayNotice() << "\n\n";
 
     std::cout << "\tEditing " << product_id;
-    
-    std::cout << "\n\tUpdate Product ID(" << product_id <<"): ";
-    std::cin >> productId;
+    productId = product_id;
 
     std::cout << "\tUpdate Product Name(" << product_name <<"): ";
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -255,8 +278,33 @@ class BaseProduct: public Base, public Crud {
     }
   }
 
+  bool productIdExists(std::string productId){
+    std::string row_data, productid;
+    
+    bool foundProduct = false;
+
+    std::ifstream Products("products.csv");
+
+    while(getline(Products, row_data)){
+      // KPW0NX0,Pizza Dough(R),Dough
+      std::istringstream scanner(row_data);
+
+      getline(scanner, productid, ',');
+
+      if(productid == productId){
+        foundProduct = true;
+        break;
+      }
+        
+    }
+
+    Products.close();
+
+    return foundProduct;
+  }
+
   void searchRecord(){
-    std::string row_data, products;
+    std::string row_data, products, productid, productname, productcategory;
 
     searchFound = false;
     
@@ -265,8 +313,6 @@ class BaseProduct: public Base, public Crud {
     while(getline(Products, row_data)){
       // row_data = KP01,Pizza Dough
       std::istringstream scanner(row_data);
-
-      std::string productid, productname, productcategory;
 
       getline(scanner, productid, ',');
       getline(scanner, productname, ',');
