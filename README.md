@@ -11,7 +11,26 @@
  - Display Last Inventory
  - Menu
   - 1. Log New Inventory
+    - Display Current Date
+    - manual loop: 
+     - list of all products
+      - inventory_id (unique)
+      - product_id
+      - quantity
+      - date(hide)
+      - save record
   - 2. Edit Inventory
+    - Display all dates from daily-log-inventory folder
+      - enter the correct date: (2024-04-03)
+       - list of all batches
+        - batch 1
+        - batch 2
+        - Enter batch number: 
+          - display all daily logs under specific batch. (sample batch 1)
+          - Enter Product id: 
+          - display product details
+           - Enter quantity: 
+       
   - 3. Delete Inventory
   - 4. Back To Main Menu
 

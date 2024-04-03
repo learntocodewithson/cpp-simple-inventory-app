@@ -81,7 +81,7 @@ class BaseApp: public Base {
   
    switch (choice){
    case 1:
-    //
+      base_daily_log_inventory.addRecord();
     break;
    case 2:
     //
