@@ -84,7 +84,7 @@ class BaseApp: public Base {
       base_daily_log_inventory.addRecord();
     break;
    case 2:
-    //
+      base_daily_log_inventory.editRecord();
     break;
    default:
     back_to_main_menu = 1;

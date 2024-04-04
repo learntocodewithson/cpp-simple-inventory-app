@@ -3,6 +3,16 @@
 
 #include <chrono>
 #include <ctime>
+#include <vector>
+
+#ifdef _WIN32
+// Windows-specific includes and code
+#include <windows.h>
+#else
+// Unix-like OS specific includes and code
+#include <dirent.h>
+#include <sys/stat.h>
+#endif
 
 class BaseDailyLogInventory: public Base, public Crud {
  std::string currentDate;
@@ -75,6 +85,131 @@ class BaseDailyLogInventory: public Base, public Crud {
   return batchNumber;
  }
 
+ void displayBatchNumbers(std::string date){
+  std::string row_data, strBatchNumber, tempBatchNumber;
+
+  std::ifstream DailyLogInventory("daily-log-inventory/" + date);
+
+   if(DailyLogInventory.is_open()){
+    while(getline(DailyLogInventory, row_data)){
+      std::istringstream scanner(row_data);
+      getline(scanner, strBatchNumber, ',');
+      if(strBatchNumber != tempBatchNumber && strBatchNumber != ""){
+        std::cout << "\tBatch " << strBatchNumber << "\n";
+        tempBatchNumber = strBatchNumber;
+      }
+    }
+   }else{
+    std::cout << "\t Unable to open the file";
+   }
+    
+   DailyLogInventory.close();
+ }
+
+ void fetchAndUpdateBatchDailyLogs(std::string date, int batch_number){
+  std::string row_data, strBatchNumber, strProductId, strProductName, strQuantity, strDate, strUpdatedLog, productQuantity;
+  std::vector<std::string> updatedLogs;
+  std::ifstream DailyLogInventory("daily-log-inventory/" + date);
+
+  std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+  if(DailyLogInventory.is_open()){
+    while(getline(DailyLogInventory, row_data)){
+      std::istringstream scanner(row_data);
+      getline(scanner, strBatchNumber, ',');
+      if(strBatchNumber != "" && stoi(strBatchNumber) == batch_number){
+        getline(scanner, strProductId, ',');
+        getline(scanner, strProductName, ',');
+        getline(scanner, strQuantity, ',');
+        getline(scanner, strDate);
+
+        std::cout << "\n\t" << strProductName << "[" << strProductId <<"](" << strQuantity <<")";
+        std::cout << "\n\tEnter new quantity: ";
+       
+        getline(std::cin, productQuantity);
+       
+        
+        if(productQuantity != "")
+          strQuantity = productQuantity;
+
+        strUpdatedLog = std::to_string(batch_number) + "," + strProductId + "," + strProductName + "," + strQuantity + "," + strDate;
+        updatedLogs.push_back(strUpdatedLog);
+
+        // std::cout << "\n" + strUpdatedLog;
+        
+      }else{
+        updatedLogs.push_back(row_data);
+      }
+    }
+
+  }else{
+    std::cout << "\t Unable to open the file";
+  }
+
+  DailyLogInventory.close();
+
+  // create new file and load the new list
+  std::ofstream WriteDailyLogInventory("daily-log-inventory/" + date);
+
+  if(WriteDailyLogInventory.is_open()){
+    for (size_t i = 0; i < updatedLogs.size(); ++i){
+      if(updatedLogs[i] != "")
+        WriteDailyLogInventory << updatedLogs[i] << "\n";
+    }
+
+    WriteDailyLogInventory.close();
+  }else{
+      setErrorNotice("\nUnable to create and open a file");
+  }
+ }
+
+
+
+#ifdef _WIN32
+  void listFilesInFolder(const std::wstring& folderPath) {
+    WIN32_FIND_DATAW findData;
+    HANDLE hFind = FindFirstFileW((folderPath + L"\\*").c_str(), &findData);
+    if (hFind == INVALID_HANDLE_VALUE) {
+        std::cerr << "Error opening directory " << folderPath << std::endl;
+        return;
+    }
+
+    do {
+        if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
+            std::wcout << findData.cFileName << std::endl;
+        } else if (wcscmp(findData.cFileName, L".") != 0 && wcscmp(findData.cFileName, L"..") != 0) {
+            // Recursively call listFilesInFolder for subdirectories
+            listFilesInFolder(folderPath + L"\\" + findData.cFileName);
+        }
+    } while (FindNextFileW(hFind, &findData) != 0);
+
+    FindClose(hFind);
+  }
+#else
+  void listFilesInFolder(const std::string& folderPath) {
+    DIR* dir = opendir(folderPath.c_str());
+    if (dir == nullptr) {
+        std::cerr << "Error opening directory " << folderPath << std::endl;
+        return;
+    }
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        if (entry->d_type == DT_REG) {
+            std::cout << "\t" << entry->d_name << std::endl;
+        } else if (entry->d_type == DT_DIR && strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+            // Recursively call listFilesInFolder for subdirectories
+            listFilesInFolder(folderPath + "/" + entry->d_name);
+        }
+    }
+
+    closedir(dir);
+  }
+#endif
+
+
+
+
  void addRecord() {
   currentDate = getCurrentDate();
   std::cout << "\n\tAdding New Log Inventory for " << currentDate;
@@ -113,7 +248,25 @@ class BaseDailyLogInventory: public Base, public Crud {
   }
  }
 
- void editRecord() {}
+ void editRecord() {
+  std::string date;
+  int batch_number;
+
+  std::cout << "\n\tList of all Dates from Daily Logs:\n";
+  listFilesInFolder("daily-log-inventory");
+
+  std::cout << "\n\tDaily Log Inventory Date: ";
+  std::cin >> date;
+
+  displayBatchNumbers(date);
+
+  std::cout << "\n\tEnter Batch Number: ";
+  std::cin >> batch_number;
+
+  fetchAndUpdateBatchDailyLogs(date, batch_number);
+
+
+ }
  void deleteRecord() {}
  void saveRecord() {}
  int countRecord() {
