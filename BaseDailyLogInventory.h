@@ -22,8 +22,7 @@ class BaseDailyLogInventory: public Base, public Crud {
   return ANSI_COLOR_CYAN + std::string("\tMenu\n") +
    "\t1. Log New Inventory\n"
    "\t2. Edit Inventory\n"
-   "\t3. Delete Inventory\n"
-   "\t4. Back To Main Menu\n\n" + ANSI_COLOR_RESET;
+   "\t3. Back To Main Menu\n\n" + ANSI_COLOR_RESET;
  }
 
  std::string getCurrentDate(bool timestamp = false) {
@@ -100,10 +99,28 @@ class BaseDailyLogInventory: public Base, public Crud {
       }
     }
    }else{
-    std::cout << "\t Unable to open the file";
+    setErrorNotice("\nUnable to open the file with " + date + " filename.");
    }
     
    DailyLogInventory.close();
+ }
+
+ bool batchNumberExists(std::string date, int batch_number){
+  std::string row_data, strBatchNumber;
+  bool batch_number_exists = false;
+  std::ifstream DailyLogInventory("daily-log-inventory/" + date);
+  if(DailyLogInventory.is_open()){
+    while(getline(DailyLogInventory, row_data)){
+      std::istringstream scanner(row_data);
+      getline(scanner, strBatchNumber, ',');
+      if(strBatchNumber != "" && stoi(strBatchNumber) == batch_number){
+        batch_number_exists = true;
+        break;
+      }
+    }
+  }
+
+  return batch_number_exists;
  }
 
  void fetchAndUpdateBatchDailyLogs(std::string date, int batch_number){
@@ -143,7 +160,7 @@ class BaseDailyLogInventory: public Base, public Crud {
     }
 
   }else{
-    std::cout << "\t Unable to open the file";
+    setErrorNotice("\nUnable to open the file with " + date + " filename.");
   }
 
   DailyLogInventory.close();
@@ -255,17 +272,36 @@ class BaseDailyLogInventory: public Base, public Crud {
   std::cout << "\n\tList of all Dates from Daily Logs:\n";
   listFilesInFolder("daily-log-inventory");
 
-  std::cout << "\n\tDaily Log Inventory Date: ";
-  std::cin >> date;
+  do {
+    std::cout << "\n\tDaily Log Inventory Date: ";
+    std::cin >> date;
 
-  displayBatchNumbers(date);
+    resetNotice();
 
-  std::cout << "\n\tEnter Batch Number: ";
-  std::cin >> batch_number;
+    displayBatchNumbers(date);
+    
+    if(hasNotice()){
+      std::cout << ANSI_COLOR_RED << "\tInvalid date" << ANSI_COLOR_RESET << "\n";
+    }
 
-  fetchAndUpdateBatchDailyLogs(date, batch_number);
+  } while(hasNotice());
 
+  
+  do {
+    std::cout << "\n\tEnter Batch Number: ";
 
+    if (!(std::cin >> batch_number)) {
+      std::cin.clear();
+      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    } else {
+      fetchAndUpdateBatchDailyLogs(date, batch_number);
+    }
+
+    if(!batchNumberExists(date, batch_number)){
+      std::cout << ANSI_COLOR_RED << "\tInvalid batch number" << ANSI_COLOR_RESET << "\n";
+    }
+
+  } while(!batchNumberExists(date, batch_number));
  }
  void deleteRecord() {}
  void saveRecord() {}

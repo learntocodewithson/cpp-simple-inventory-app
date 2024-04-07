@@ -29,5 +29,9 @@ class Base {
   void setErrorNotice(std::string m){
     setNotice(m, 500);
   }
+
+  void resetNotice(){
+    message = "";
+  }
 };
 #endif
