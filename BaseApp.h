@@ -11,6 +11,7 @@
 #define ANSI_COLOR_ORANGE  "\x1b[38;5;214m" // ANSI escape code for approximate orange color
 #define ANSI_COLOR_RESET   "\x1b[0m"        // Reset to default color
 
+#include <regex>
 #include "Base.h"
 #include "BaseProduct.h"
 #include "BaseDailyLogInventory.h"
@@ -19,13 +20,13 @@ class BaseApp: public Base {
  // default as private access
  std::string title;
  int choice;
- bool exit_choice, back_to_main_menu;
+ bool exit_choice, back_to_main_menu, access_granted;
 
  // set as public access
  public:
  
  // constructor
- BaseApp(std::string t = "") : title(t) {}
+ BaseApp(std::string t = "") : title(t), access_granted(false) {}
  /* same to this snippet
   BaseApp(std::string t = ""){
    title = t;
@@ -34,7 +35,31 @@ class BaseApp: public Base {
 
  // void methods
  void call(){
+  std::string master_password;
 
+  while(!access_granted) {
+    system("clear");
+
+    std::cout << displayTitle();
+    
+    if(hasNotice())
+      std::cout << "\t" << displayNotice() << "\n";
+    
+    std::cout << "\tEnter Master Password: ";
+    std::cin >> master_password;
+
+    if(master_password == getEnv("master_password")){
+      access_granted = true;
+    } else {
+      setErrorNotice("Invalid Master Password");
+    }
+  }
+
+  if(access_granted)
+   mainProgram();
+ }
+
+ void mainProgram(){
   do {
    system("clear");
 
@@ -53,9 +78,7 @@ class BaseApp: public Base {
     std::cout << "\nThank your for using this app.";
     break;
    }
-
   } while(!exit_choice);
-  
  }
 
  void displayHeader(){
@@ -154,6 +177,43 @@ class BaseApp: public Base {
    "\t1. Daily Log Inventory\n"
    "\t2. Products\n"
    "\t3. Exit\n\n" + ANSI_COLOR_RESET;
+ }
+
+ std::string getEnv(std::string key){
+  std::string row_data, tmp_key, tmp_value;
+  bool keyFound = false;
+
+  std::ifstream EnvironmentalVariables(".env");
+
+  if(EnvironmentalVariables.is_open()){
+    while(getline(EnvironmentalVariables, row_data)){
+      std::istringstream scanner(row_data);
+      getline(scanner, tmp_key, ':');
+      getline(scanner, tmp_value);
+      if(tmp_key == key){
+        keyFound = true;
+        break;
+      }
+    }
+  }
+
+  EnvironmentalVariables.close();
+
+  if(!keyFound)
+    tmp_value = "";
+
+  removeExtraSpaces(tmp_value);
+
+  return tmp_value;
+ }
+
+ void removeExtraSpaces(std::string& str) {
+  // Replace consecutive spaces with a single space
+  std::regex regex("\\s+");
+  str = std::regex_replace(str, regex, " ");
+
+  // Remove leading and trailing spaces
+  str = std::regex_replace(str, std::regex("^\\s+|\\s+$"), "");
  }
 };
 #endif
