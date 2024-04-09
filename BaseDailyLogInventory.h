@@ -4,6 +4,7 @@
 #include <chrono>
 #include <ctime>
 #include <vector>
+#include <cstdlib> 
 
 #ifdef _WIN32
 // Windows-specific includes and code
@@ -257,8 +258,13 @@ class BaseDailyLogInventory: public Base, public Crud {
 
  void saveToDailyLog(int batch_number, std::string productid, std::string productname, int quantity){
   std::string timestamp = getCurrentDate(true);
+
+  createFolderIfNotExists("daily-log-inventory");
+
   std::string daily_log_inventory_title = "daily-log-inventory/" + currentDate; 
+
   std::ofstream DailyLogInventory(daily_log_inventory_title, std::ios::app);
+
   if(DailyLogInventory.is_open()){
    DailyLogInventory << std::to_string(batch_number) << "," << productid << "," << productname << "," << std::to_string(quantity) << "," << timestamp << std::endl;
    DailyLogInventory.close(); 
@@ -307,6 +313,18 @@ class BaseDailyLogInventory: public Base, public Crud {
  void saveRecord() {}
  int countRecord() {
   return 0;
+ }
+
+ bool createFolderIfNotExists(const std::string& folderPath) {
+  std::string command;
+  
+  #ifdef _WIN32
+   command = "mkdir " + folderPath; // For Windows
+  #else
+   command = "mkdir -p " + folderPath; // For Unix-like systems (Linux, macOS)
+  #endif
+
+  return system(command.c_str()) == 0;
  }
 };
 #endif
