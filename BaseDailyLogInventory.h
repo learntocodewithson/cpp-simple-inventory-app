@@ -141,7 +141,7 @@ class BaseDailyLogInventory: public Base, public Crud {
         getline(scanner, strQuantity, ',');
         getline(scanner, strDate);
 
-        std::cout << "\n\t" << strProductName << "[" << strProductId <<"](" << strQuantity <<")";
+        std::cout << "\n\n\t" << strProductName << "[" << strProductId <<"](" << strQuantity <<")";
         std::cout << "\n\tEnter new quantity: ";
        
         getline(std::cin, productQuantity);
@@ -242,17 +242,34 @@ class BaseDailyLogInventory: public Base, public Crud {
    std::istringstream scanner(row_data);
 
    std::string productid, productname;
+   bool validQuantity = false;
    int quantity;
 
    getline(scanner, productid, ',');
    getline(scanner, productname, ',');
 
-   std::cout << "\n\tProduct " << productname << "[" << productid << "]";
-   std::cout << "\n\tEnter Quantity: ";
-   std::cin >> quantity;
+   do {
+    std::cout << "\n\tProduct " << productname << "[" << productid << "]";
+    
+    if(hasNotice()){
+      std::cout << displayNotice();
+      resetNotice();
+    }
+    
+    std::cout << "\n\tEnter Quantity: ";
+  
+    if (!(std::cin >> quantity)) {
+      std::cin.clear();
+      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+      setErrorNotice("\n\tInvalid Quantity");
+    } else {
+      validQuantity = true;
+      saveToDailyLog(batch_number, productid, productname, quantity);
+    }
+   } while(!validQuantity);
 
-   saveToDailyLog(batch_number, productid, productname, quantity);
   }
+  setSuccessNotice("Daily Log Inventory has been successfully logged.");
   Products.close();
  }
 

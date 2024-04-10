@@ -99,7 +99,10 @@ class BaseApp: public Base {
 
    std::cout << displayTitle();
    std::cout << base_daily_log_inventory.displayMenu();
-
+   
+   if(base_daily_log_inventory.hasNotice())
+    std::cout << "\t" << base_daily_log_inventory.displayNotice() << "\n\n";
+   
    getChoiceInput();
   
    switch (choice){
@@ -129,9 +132,10 @@ class BaseApp: public Base {
 
    std::cout << displayTitle();
    std::cout << base_product.displayMenu();
-   if(base_product.hasNotice()){
+
+   if(base_product.hasNotice())
     std::cout << "\t" << base_product.displayNotice() << "\n\n";
-   }
+   
    getChoiceInput();
    
    switch (choice){
