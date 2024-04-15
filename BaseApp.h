@@ -12,6 +12,16 @@
 #define ANSI_COLOR_RESET   "\x1b[0m"        // Reset to default color
 
 #include <regex>
+#ifdef _WIN32
+// Windows-specific includes and code
+#include <windows.h>
+#else
+// Unix-like OS specific includes and code
+#include <termios.h>
+#include <unistd.h>
+#include <cstdio>
+#endif
+
 #include "Base.h"
 #include "BaseProduct.h"
 #include "BaseDailyLogInventory.h"
@@ -45,8 +55,7 @@ class BaseApp: public Base {
     if(hasNotice())
       std::cout << "\t" << displayNotice() << "\n";
     
-    std::cout << "\tEnter Master Password: ";
-    std::cin >> master_password;
+    master_password = scanMasterPassword();
 
     if(master_password == getEnv("master_password")){
       access_granted = true;
@@ -219,5 +228,52 @@ class BaseApp: public Base {
   // Remove leading and trailing spaces
   str = std::regex_replace(str, std::regex("^\\s+|\\s+$"), "");
  }
+ 
+ #ifdef _WIN32
+  std::string scanMasterPassword(){
+   std::string password;
+   
+   HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
+   DWORD mode;
+   GetConsoleMode(hStdin, &mode);
+   SetConsoleMode(hStdin, mode & (~ENABLE_ECHO_INPUT));
+
+   std::cout << "\tEnter Master Password: ";
+   std::cin >> password;
+
+   SetConsoleMode(hStdin, mode); // Restore console mode
+
+   return password;
+  }
+ #else
+  std::string scanMasterPassword(){
+   std::string password;
+   
+   echoOff();
+   std::cout << "\tEnter Master Password: ";
+   std::cin >> password;
+   echoOn();
+
+   return password;
+  }
+ #endif
+
+ // Function to turn off echoing
+  void echoOff() {
+    termios tty;
+    tcgetattr(STDIN_FILENO, &tty);
+    tty.c_lflag &= ~ECHO;
+    tcsetattr(STDIN_FILENO, TCSANOW, &tty);
+  }
+
+  // Function to turn on echoing
+  void echoOn() {
+    termios tty;
+    tcgetattr(STDIN_FILENO, &tty);
+    tty.c_lflag |= ECHO;
+    tcsetattr(STDIN_FILENO, TCSANOW, &tty);
+  }
+
+
 };
 #endif
